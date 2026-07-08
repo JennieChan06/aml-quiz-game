@@ -6,11 +6,11 @@
   <title>🎮 主持人控制台 — AML 排位賽</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    body { background: #0a1628; }
+    body { background: var(--bg); }
 
     .admin-header {
-      background: var(--card);
-      border-bottom: 1px solid var(--border);
+      background: var(--primary);
+      border-bottom: 2px solid #b45309;
       padding: 14px 24px;
       display: flex;
       align-items: center;
@@ -19,8 +19,8 @@
       top: 0;
       z-index: 100;
     }
-    .admin-header h1 { font-size: 1rem; font-weight: 700; color: var(--primary); }
-    .admin-header p  { font-size: 0.8rem; color: var(--muted); }
+    .admin-header h1 { font-size: 1rem; font-weight: 700; color: #ffffff; }
+    .admin-header p  { font-size: 0.8rem; color: rgba(255,255,255,0.8); }
 
     .qr-url-row { display: flex; align-items: center; gap: 16px; }
     #qr-img { border-radius: 8px; background: white; padding: 4px; }
@@ -62,9 +62,9 @@
     <h1>🎮 主持人控制台</h1>
     <p id="phase-text">等待大廳</p>
   </div>
-  <div style="display:flex;align-items:center;gap:8px;">
-    <span class="status-dot"></span>
-    <span style="font-size:0.8rem;color:var(--muted);">已連線</span>
+    <div style="display:flex;align-items:center;gap:8px;">
+    <span class="status-dot" style="background:rgba(255,255,255,0.9);"></span>
+    <span style="font-size:0.8rem;color:rgba(255,255,255,0.85);">已連線</span>
   </div>
 </div>
 

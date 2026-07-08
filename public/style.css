@@ -1,14 +1,15 @@
 /* ── 全域設定 ──────────────────────────────── */
 :root {
-  --bg:        #0d1b2a;
-  --card:      #1a2f4e;
-  --card2:     #243b55;
-  --border:    #2d4a6e;
-  --primary:   #f59e0b;
-  --text:      #e2e8f0;
-  --muted:     #94a3b8;
-  --success:   #10b981;
-  --danger:    #ef4444;
+  --bg:        #fffbeb;
+  --card:      #ffffff;
+  --card2:     #fef3c7;
+  --border:    #fde68a;
+  --primary:   #d97706;
+  --primary-lt:#fef3c7;
+  --text:      #1e293b;
+  --muted:     #78716c;
+  --success:   #059669;
+  --danger:    #dc2626;
   --opt-a:     #dc2626;
   --opt-b:     #2563eb;
   --opt-c:     #d97706;
@@ -17,6 +18,7 @@
   --opt-b-h:   #1d4ed8;
   --opt-c-h:   #b45309;
   --opt-d-h:   #15803d;
+  --shadow:    0 2px 12px rgba(217,119,6,0.10);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -50,14 +52,11 @@ body {
   margin-bottom: 32px;
 }
 
-.logo-icon {
-  font-size: 3rem;
-  line-height: 1;
-}
+.logo-icon { font-size: 3rem; line-height: 1; }
 
 .logo h1 {
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 800;
   color: var(--primary);
   margin-top: 8px;
 }
@@ -71,15 +70,14 @@ body {
 /* ── 卡片 ──────────────────────────────────── */
 .card {
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: 16px;
   padding: 28px;
   margin-bottom: 16px;
+  box-shadow: var(--shadow);
 }
 
-.card-sm {
-  padding: 16px 20px;
-}
+.card-sm { padding: 16px 20px; }
 
 /* ── 按鈕 ──────────────────────────────────── */
 .btn {
@@ -97,60 +95,52 @@ body {
 
 .btn-primary {
   background: var(--primary);
-  color: #1a1a1a;
+  color: #ffffff;
 }
-
-.btn-primary:hover { background: #e08906; transform: translateY(-1px); }
+.btn-primary:hover  { background: #b45309; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(217,119,6,0.3); }
 .btn-primary:active { transform: translateY(0); }
 
 .btn-danger {
   background: var(--danger);
   color: white;
 }
-
-.btn-danger:hover { background: #dc2626; }
+.btn-danger:hover { background: #b91c1c; }
 
 .btn-ghost {
   background: transparent;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   color: var(--muted);
 }
-
 .btn-ghost:hover { background: var(--card2); color: var(--text); }
 
-.btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  transform: none;
-}
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
 /* ── 輸入框 ────────────────────────────────── */
 .input {
   width: 100%;
   padding: 14px 16px;
   background: var(--card2);
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: 12px;
   color: var(--text);
   font-size: 1rem;
   outline: none;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
   margin-bottom: 12px;
 }
-
-.input:focus { border-color: var(--primary); }
-.input::placeholder { color: var(--muted); }
+.input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(217,119,6,0.15); }
+.input::placeholder { color: #a8a29e; }
 
 /* ── 分類標籤 ──────────────────────────────── */
 .category-badge {
   display: inline-block;
-  background: rgba(245, 158, 11, 0.15);
+  background: var(--primary-lt);
   color: var(--primary);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  border: 1px solid var(--border);
   padding: 4px 12px;
   border-radius: 100px;
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 12px;
 }
 
@@ -164,30 +154,29 @@ body {
 
 .timer-bar-bg {
   flex: 1;
-  height: 8px;
+  height: 10px;
   background: var(--card2);
-  border-radius: 4px;
+  border-radius: 5px;
   overflow: hidden;
   margin-right: 12px;
+  border: 1px solid var(--border);
 }
 
 .timer-bar {
   height: 100%;
   background: var(--primary);
-  border-radius: 4px;
+  border-radius: 5px;
   transition: width 1s linear, background 0.5s;
 }
-
 .timer-bar.urgent { background: var(--danger); }
 
 .timer-num {
-  font-size: 1.4rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: var(--primary);
-  min-width: 36px;
+  min-width: 40px;
   text-align: right;
 }
-
 .timer-num.urgent { color: var(--danger); }
 
 /* ── 題目 ──────────────────────────────────── */
@@ -199,8 +188,9 @@ body {
 
 .question-text {
   font-size: 1.05rem;
-  line-height: 1.7;
+  line-height: 1.75;
   white-space: pre-wrap;
+  color: var(--text);
 }
 
 /* ── 選項按鈕 ──────────────────────────────── */
@@ -220,12 +210,13 @@ body {
   border: none;
   border-radius: 12px;
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
   text-align: left;
   transition: all 0.15s ease;
   line-height: 1.4;
   color: white;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 .option-btn:nth-child(1) { background: var(--opt-a); }
@@ -239,10 +230,9 @@ body {
 .option-btn:nth-child(4):hover:not(:disabled) { background: var(--opt-d-h); transform: translateY(-2px); }
 
 .option-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-.option-btn.selected { outline: 3px solid white; transform: scale(1.02); }
+.option-btn.selected { outline: 3px solid #1e293b; transform: scale(1.02); }
 .option-btn.correct  { outline: 4px solid var(--success); }
-.option-btn.wrong    { opacity: 0.45; }
+.option-btn.wrong    { opacity: 0.4; }
 
 /* ── 結果顯示 ──────────────────────────────── */
 .result-banner {
@@ -253,27 +243,27 @@ body {
 }
 
 .result-banner.correct-bg {
-  background: rgba(16, 185, 129, 0.15);
-  border: 1px solid rgba(16, 185, 129, 0.3);
+  background: #d1fae5;
+  border: 1.5px solid #6ee7b7;
 }
 
 .result-banner.wrong-bg {
-  background: rgba(239, 68, 68, 0.12);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background: #fee2e2;
+  border: 1.5px solid #fca5a5;
 }
 
-.result-icon { font-size: 2.5rem; }
-.result-title { font-size: 1.2rem; font-weight: 700; margin: 6px 0; }
-.result-points { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+.result-icon  { font-size: 2.5rem; }
+.result-title { font-size: 1.2rem; font-weight: 700; margin: 6px 0; color: var(--text); }
+.result-points { font-size: 1.5rem; font-weight: 800; }
 
 /* ── 解析說明 ──────────────────────────────── */
 .explanation {
   background: var(--card2);
-  border-left: 3px solid var(--primary);
+  border-left: 4px solid var(--primary);
   border-radius: 0 10px 10px 0;
   padding: 14px 16px;
   font-size: 0.9rem;
-  line-height: 1.7;
+  line-height: 1.75;
   margin-top: 12px;
 }
 
@@ -297,30 +287,27 @@ body {
   margin-bottom: 6px;
   background: var(--card2);
   font-weight: 600;
+  border: 1px solid var(--border);
 }
 
-.leaderboard li:nth-child(1) { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); }
-.leaderboard li:nth-child(2) { background: rgba(148, 163, 184, 0.12); }
-.leaderboard li:nth-child(3) { background: rgba(205, 127, 50, 0.1); }
+.leaderboard li:nth-child(1) { background: #fef9c3; border-color: #fde047; }
+.leaderboard li:nth-child(2) { background: #f1f5f9; border-color: #cbd5e1; }
+.leaderboard li:nth-child(3) { background: #fff7ed; border-color: #fdba74; }
 
 .rank-num {
   font-size: 1.1rem;
   min-width: 32px;
   color: var(--muted);
 }
+.rank-num.gold   { color: #ca8a04; }
+.rank-num.silver { color: #64748b; }
+.rank-num.bronze { color: #c2410c; }
 
-.rank-num.gold   { color: #f59e0b; }
-.rank-num.silver { color: #94a3b8; }
-.rank-num.bronze { color: #cd7f32; }
-
-.rank-name { flex: 1; }
-.rank-score { color: var(--primary); font-size: 1rem; }
+.rank-name  { flex: 1; color: var(--text); }
+.rank-score { color: var(--primary); font-size: 1rem; font-weight: 800; }
 
 /* ── 等待提示 ──────────────────────────────── */
-.waiting-pulse {
-  text-align: center;
-  padding: 32px;
-}
+.waiting-pulse { text-align: center; padding: 32px; }
 
 .pulse-icon {
   font-size: 3rem;
@@ -329,7 +316,7 @@ body {
 
 @keyframes pulse {
   0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.1); opacity: 0.7; }
+  50%       { transform: scale(1.1); opacity: 0.7; }
 }
 
 .waiting-text { color: var(--muted); margin-top: 12px; font-size: 0.95rem; }
@@ -346,12 +333,12 @@ body {
 
 .divider {
   border: none;
-  border-top: 1px solid var(--border);
+  border-top: 1.5px solid var(--border);
   margin: 16px 0;
 }
 
-.text-center { text-align: center; }
-.text-muted  { color: var(--muted); }
+.text-center  { text-align: center; }
+.text-muted   { color: var(--muted); }
 .text-primary { color: var(--primary); }
 .text-success { color: var(--success); }
 .text-danger  { color: var(--danger); }
@@ -367,8 +354,7 @@ body {
 /* ── 連線狀態點 ────────────────────────────── */
 .status-dot {
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 8px; height: 8px;
   border-radius: 50%;
   background: var(--success);
   margin-right: 6px;
@@ -377,7 +363,7 @@ body {
 
 @keyframes blink {
   0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  50%       { opacity: 0.3; }
 }
 
 /* ── 進度條 ────────────────────────────────── */
@@ -387,6 +373,7 @@ body {
   border-radius: 3px;
   overflow: hidden;
   margin-top: 6px;
+  border: 1px solid var(--border);
 }
 
 .progress-bar {
@@ -396,7 +383,7 @@ body {
   transition: width 0.4s ease;
 }
 
-/* ── 主持人專用：大螢幕佈局 ────────────────── */
+/* ── 主持人專用大螢幕佈局 ──────────────────── */
 .admin-layout {
   display: grid;
   grid-template-columns: 320px 1fr;
@@ -412,10 +399,7 @@ body {
   .admin-layout { grid-template-columns: 1fr; }
 }
 
-.admin-sidebar {
-  position: sticky;
-  top: 20px;
-}
+.admin-sidebar { position: sticky; top: 20px; }
 
 /* ── 數字大標 ──────────────────────────────── */
 .big-num {
@@ -428,12 +412,12 @@ body {
 /* ── 標籤 ──────────────────────────────────── */
 .badge {
   display: inline-block;
-  padding: 2px 10px;
+  padding: 3px 12px;
   border-radius: 100px;
   font-size: 0.75rem;
   font-weight: 700;
 }
 
-.badge-green { background: rgba(16, 185, 129, 0.15); color: var(--success); }
-.badge-red   { background: rgba(239, 68, 68, 0.15);  color: var(--danger); }
-.badge-gold  { background: rgba(245, 158, 11, 0.15); color: var(--primary); }
+.badge-green { background: #d1fae5; color: var(--success); border: 1px solid #6ee7b7; }
+.badge-red   { background: #fee2e2; color: var(--danger);  border: 1px solid #fca5a5; }
+.badge-gold  { background: #fef9c3; color: #ca8a04;        border: 1px solid #fde047; }
