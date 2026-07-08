@@ -19,101 +19,39 @@
       top: 0;
       z-index: 100;
     }
-
     .admin-header h1 { font-size: 1rem; font-weight: 700; color: var(--primary); }
     .admin-header p  { font-size: 0.8rem; color: var(--muted); }
 
-    /* QR + URL 區塊 */
-    .qr-url-row {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
+    .qr-url-row { display: flex; align-items: center; gap: 16px; }
     #qr-img { border-radius: 8px; background: white; padding: 4px; }
-
     .url-box {
-      background: var(--card2);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 0.85rem;
-      word-break: break-all;
-      color: var(--text);
+      background: var(--card2); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 0.85rem; word-break: break-all; color: var(--text);
     }
 
-    /* 控制按鈕組 */
-    .ctrl-group { display: flex; flex-direction: column; gap: 10px; }
-
-    .btn-large {
-      padding: 18px;
-      font-size: 1.05rem;
-      border-radius: 14px;
+    /* 進度表格 */
+    .progress-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .progress-table th, .progress-table td {
+      padding: 9px 12px; border-bottom: 1px solid var(--border); text-align: left;
     }
+    .progress-table th { color: var(--muted); font-weight: 600; font-size: 0.75rem; }
+    .progress-table td:last-child { font-weight: 700; }
+    .progress-table tr:last-child td { border-bottom: none; }
 
-    /* 進度顯示 */
-    .progress-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      font-size: 0.85rem;
+    .done-badge { color: var(--success); font-weight: 700; }
+    .prog-bar-cell { width: 120px; }
+    .mini-bar-bg { height: 5px; background: var(--card2); border-radius: 3px; margin-top: 4px; }
+    .mini-bar    { height: 5px; background: var(--primary); border-radius: 3px; transition: width 0.4s; }
+
+    .btn-large { padding: 16px; font-size: 1rem; border-radius: 14px; }
+
+    /* 匯出表格 */
+    .export-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .export-table th, .export-table td {
+      padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left;
     }
-
-    /* 玩家列表 */
-    #player-list li {
-      display: flex;
-      align-items: center;
-      padding: 8px 12px;
-      border-radius: 8px;
-      background: var(--card2);
-      margin-bottom: 5px;
-      font-size: 0.9rem;
-    }
-
-    .answered-check { color: var(--success); margin-left: auto; font-size: 1rem; }
-
-    /* 通知閃爍 */
-    .flash-notice {
-      background: rgba(16,185,129,0.15);
-      border: 1px solid rgba(16,185,129,0.4);
-      border-radius: 10px;
-      padding: 10px 14px;
-      font-size: 0.85rem;
-      color: var(--success);
-      margin-bottom: 10px;
-      animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
-
-    /* 最終排行匯出表 */
-    #export-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.88rem;
-    }
-
-    #export-table th, #export-table td {
-      padding: 8px 12px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-    }
-
-    #export-table th { color: var(--muted); font-weight: 600; font-size: 0.75rem; }
-    #export-table td:last-child { color: var(--primary); font-weight: 700; }
-
-    .phase-badge {
-      display: inline-block;
-      padding: 2px 12px;
-      border-radius: 100px;
-      font-size: 0.75rem;
-      font-weight: 700;
-    }
-
-    .phase-lobby    { background: rgba(148,163,184,0.15); color: var(--muted); }
-    .phase-question { background: rgba(245,158,11,0.15);  color: var(--primary); }
-    .phase-reveal   { background: rgba(16,185,129,0.15);  color: var(--success); }
-    .phase-ended    { background: rgba(239,68,68,0.15);   color: var(--danger); }
+    .export-table th { color: var(--muted); font-size: 0.75rem; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -122,7 +60,7 @@
 <div class="admin-header">
   <div>
     <h1>🎮 主持人控制台</h1>
-    <p id="phase-display">等待遊戲開始</p>
+    <p id="phase-text">等待大廳</p>
   </div>
   <div style="display:flex;align-items:center;gap:8px;">
     <span class="status-dot"></span>
@@ -130,13 +68,12 @@
   </div>
 </div>
 
-<!-- 主體佈局 -->
 <div class="admin-layout">
 
   <!-- ── 左側邊欄 ─────────────────────────── -->
   <div class="admin-sidebar">
 
-    <!-- 員工加入 QR / URL -->
+    <!-- QR + URL -->
     <div class="card card-sm">
       <div class="section-title">📱 員工加入方式</div>
       <div class="qr-url-row" style="margin-top:10px;">
@@ -148,119 +85,83 @@
       </div>
     </div>
 
-    <!-- 玩家列表 -->
-    <div class="card" style="margin-top:12px;">
-      <div class="section-title" style="display:flex;justify-content:space-between;">
-        <span>👥 在場玩家</span>
-        <span id="player-count" class="text-primary">0 人</span>
+    <!-- 整體進度摘要 -->
+    <div class="card card-sm" style="margin-top:12px;">
+      <div class="section-title">📊 整體進度</div>
+      <div style="display:flex;gap:16px;margin-top:10px;text-align:center;">
+        <div style="flex:1;">
+          <div id="stat-players" class="big-num">0</div>
+          <div class="text-muted" style="font-size:0.75rem;">人加入</div>
+        </div>
+        <div style="flex:1;">
+          <div id="stat-finished" class="big-num">0</div>
+          <div class="text-muted" style="font-size:0.75rem;">人完成</div>
+        </div>
+        <div style="flex:1;">
+          <div id="stat-avg" class="big-num">-</div>
+          <div class="text-muted" style="font-size:0.75rem;">平均題數</div>
+        </div>
       </div>
-      <ul id="player-list" class="leaderboard" style="margin-top:8px;"></ul>
-      <p id="no-player-msg" class="text-muted" style="font-size:0.85rem;padding:8px 0;">尚無玩家加入</p>
     </div>
 
-    <!-- 重置按鈕 -->
-    <div style="margin-top:12px;">
-      <button id="reset-btn" class="btn btn-ghost" onclick="confirmReset()">
-        🔄 重置遊戲（回到大廳）
-      </button>
+    <!-- 操作按鈕 -->
+    <div style="margin-top:12px;display:flex;flex-direction:column;gap:8px;">
+      <button id="start-btn"    class="btn btn-primary btn-large" onclick="startGame()">🚀 開始遊戲</button>
+      <button id="forceend-btn" class="btn btn-danger  btn-large hidden" onclick="forceEnd()">🏁 強制結束遊戲</button>
+      <button id="reset-btn"    class="btn btn-ghost"              onclick="confirmReset()">🔄 重置遊戲</button>
     </div>
   </div>
 
   <!-- ── 右側主區域 ───────────────────────── -->
-  <div id="main-area">
+  <div>
 
-    <!-- 【大廳等待狀態】 -->
+    <!-- 等待大廳 -->
     <div id="area-lobby">
-      <div class="card text-center" style="padding:40px;">
-        <div style="font-size:3rem;">⏳</div>
-        <p style="font-size:1.1rem;font-weight:700;margin-top:12px;">等待玩家加入中</p>
-        <p class="text-muted mt-8" style="font-size:0.9rem;">確認玩家都加入後，按下方按鈕開始遊戲</p>
-        <button id="start-btn" class="btn btn-primary btn-large" style="margin-top:24px;max-width:320px;margin-left:auto;margin-right:auto;" onclick="nextQuestion()">
-          🚀 開始遊戲（第 1 題）
-        </button>
+      <div class="card text-center" style="padding:36px;">
+        <div style="font-size:2.5rem;">⏳</div>
+        <p style="font-size:1.05rem;font-weight:700;margin-top:12px;">等待玩家加入</p>
+        <p class="text-muted mt-8" style="font-size:0.9rem;">確認玩家加入後，按左側「開始遊戲」</p>
+        <p class="text-muted mt-8" style="font-size:0.85rem;">
+          遊戲說明：開始後每位玩家可<strong>自行作答並立即查看解析</strong>，答完自行按「下一題」繼續。
+        </p>
       </div>
     </div>
 
-    <!-- 【出題狀態】 -->
-    <div id="area-question" class="hidden">
-      <!-- 通知區 -->
-      <div id="notice-area"></div>
-
-      <!-- 進度 -->
-      <div class="card card-sm" style="margin-bottom:12px;">
-        <div class="progress-row">
-          <span>作答進度</span>
-          <span id="progress-text" class="text-primary font-bold">0 / 0</span>
-        </div>
-        <div class="progress-bar-bg" style="margin-top:8px;">
-          <div id="progress-bar" class="progress-bar" style="width:0%"></div>
-        </div>
-      </div>
-
-      <!-- 目前題目預覽 -->
-      <div class="card" style="margin-bottom:12px;">
-        <span id="admin-q-category" class="category-badge"></span>
-        <p id="admin-q-meta" class="question-meta"></p>
-        <p id="admin-q-text" class="question-text" style="font-size:0.95rem;"></p>
-      </div>
-
-      <!-- 控制按鈕 -->
-      <div class="card card-sm">
-        <div class="ctrl-group">
-          <button id="reveal-btn" class="btn btn-primary btn-large" onclick="revealAnswer()">
-            👁 揭曉答案
-          </button>
-        </div>
+    <!-- 遊戲進行中：逐人進度表 -->
+    <div id="area-playing" class="hidden">
+      <div class="card">
+        <div class="section-title" style="margin-bottom:12px;">👥 各玩家進度（即時更新）</div>
+        <table class="progress-table">
+          <thead>
+            <tr>
+              <th>名次</th>
+              <th>姓名</th>
+              <th>分數</th>
+              <th>進度</th>
+              <th>狀態</th>
+            </tr>
+          </thead>
+          <tbody id="progress-tbody"></tbody>
+        </table>
       </div>
     </div>
 
-    <!-- 【揭曉狀態】 -->
-    <div id="area-reveal" class="hidden">
-      <!-- 答案 + 解析 -->
-      <div class="card" style="margin-bottom:12px;">
-        <div class="result-banner correct-bg" style="text-align:center;margin-bottom:12px;">
-          <p class="section-title">✅ 正確答案</p>
-          <p id="admin-correct-letter" class="result-points" style="font-size:2.5rem;"></p>
-        </div>
-        <div class="explanation">
-          <div class="explanation-label">📖 解析說明</div>
-          <p id="admin-explanation"></p>
-        </div>
-      </div>
-
-      <!-- 即時排行 -->
-      <div class="card" style="margin-bottom:12px;">
-        <div class="section-title">🏆 即時排行榜</div>
-        <ul id="admin-leaderboard" class="leaderboard" style="margin-top:8px;"></ul>
-      </div>
-
-      <!-- 下一步按鈕 -->
-      <div class="card card-sm">
-        <button id="next-btn" class="btn btn-primary btn-large" onclick="nextQuestion()">
-          ▶ 下一題
-        </button>
-      </div>
-    </div>
-
-    <!-- 【遊戲結束狀態】 -->
+    <!-- 遊戲結束 -->
     <div id="area-ended" class="hidden">
-      <div class="card text-center" style="margin-bottom:12px;padding:32px;">
-        <div style="font-size:3rem;">🏆</div>
-        <p style="font-size:1.3rem;font-weight:700;color:var(--primary);margin-top:12px;">遊戲結束！</p>
-        <p class="text-muted mt-8">以下為最終排名</p>
+      <div class="card text-center" style="padding:28px;margin-bottom:12px;">
+        <div style="font-size:2.5rem;">🏆</div>
+        <p style="font-size:1.2rem;font-weight:700;color:var(--primary);margin-top:10px;">遊戲結束！</p>
       </div>
 
       <div class="card" style="margin-bottom:12px;">
         <div class="section-title">🎖️ 最終排名</div>
-        <ul id="final-admin-leaderboard" class="leaderboard" style="margin-top:8px;"></ul>
+        <ul id="final-leaderboard" class="leaderboard" style="margin-top:8px;"></ul>
       </div>
 
-      <div class="card card-sm" style="margin-bottom:12px;">
-        <div class="section-title">📊 匯出完訓成績</div>
-        <table id="export-table">
-          <thead>
-            <tr><th>名次</th><th>姓名</th><th>得分</th></tr>
-          </thead>
+      <div class="card card-sm">
+        <div class="section-title">📄 匯出完訓成績</div>
+        <table class="export-table" style="margin-top:8px;">
+          <thead><tr><th>名次</th><th>姓名</th><th>得分</th></tr></thead>
           <tbody id="export-tbody"></tbody>
         </table>
         <button class="btn btn-primary" style="margin-top:14px;" onclick="exportCSV()">
@@ -279,113 +180,96 @@
 <script>
 const socket = io();
 
-// ── 狀態 ────────────────────────────────────
-let currentPhase = 'lobby';
-let currentIndex = -1;
-let totalQ       = 0;
-let players      = [];
-let answeredIds  = new Set();
-let exportData   = [];
+let exportData = [];
 
-// ── 產生 QR Code ─────────────────────────────
-(function setupQR() {
-  const url = `http://${location.hostname}:${location.port || 3000}`;
+// ── QR Code ──────────────────────────────────
+(function() {
+  const url = `${location.protocol}//${location.hostname}${location.port ? ':' + location.port : ''}`;
   document.getElementById('join-url').textContent = url;
   document.getElementById('qr-img').src =
     `https://api.qrserver.com/v1/create-qr-code/?size=90x90&data=${encodeURIComponent(url)}&bgcolor=ffffff&color=0d1b2a`;
 })();
 
-// ── 畫面區域切換 ──────────────────────────────
+// ── 區域切換 ─────────────────────────────────
 function showArea(name) {
-  ['lobby','question','reveal','ended'].forEach(a => {
-    document.getElementById(`area-${a}`).classList.toggle('hidden', a !== name);
-  });
+  ['lobby','playing','ended'].forEach(a =>
+    document.getElementById(`area-${a}`).classList.toggle('hidden', a !== name)
+  );
 }
 
-// ── 相位說明文字 ──────────────────────────────
-const phaseLabels = {
-  lobby:    '⏳ 等待大廳',
-  question: '🟡 出題中',
-  reveal:   '✅ 揭曉答案',
-  ended:    '🏁 遊戲結束'
-};
+// ── 玩家進度更新 ──────────────────────────────
+function updateProgress(players) {
+  exportData = players;
 
-function updatePhaseDisplay(phase) {
-  currentPhase = phase;
-  document.getElementById('phase-display').textContent = phaseLabels[phase] || phase;
-}
+  // 摘要統計
+  const finished = players.filter(p => p.finished).length;
+  const avgQ = players.length
+    ? (players.reduce((s, p) => s + p.current, 0) / players.length).toFixed(1)
+    : '-';
+  document.getElementById('stat-players').textContent  = players.length;
+  document.getElementById('stat-finished').textContent = finished;
+  document.getElementById('stat-avg').textContent      = avgQ;
 
-// ── 玩家列表渲染 ──────────────────────────────
-function renderPlayers(data) {
-  players = data;
-  const list = document.getElementById('player-list');
-  const noMsg = document.getElementById('no-player-msg');
-  document.getElementById('player-count').textContent = `${data.length} 人`;
-
-  if (!data.length) {
-    list.innerHTML = '';
-    noMsg.style.display = '';
-    return;
-  }
-  noMsg.style.display = 'none';
-  list.innerHTML = data.map(p => {
-    const checked = answeredIds.has(p.name) ? '<span class="answered-check">✓</span>' : '';
-    return `<li>
-      <span class="rank-num">${p.rank}</span>
-      <span class="rank-name">${escHtml(p.name)}</span>
-      <span class="rank-score text-muted" style="font-size:0.8rem;">${p.score.toLocaleString()}</span>
-      ${checked}
-    </li>`;
-  }).join('');
+  // 進度表
+  const tbody = document.getElementById('progress-tbody');
+  tbody.innerHTML = players.map(p => {
+    const pct = Math.round(((p.current) / p.total) * 100);
+    const statusHtml = p.finished
+      ? '<span class="done-badge">✅ 完成</span>'
+      : `<span class="text-muted">第 ${p.current}/${p.total} 題</span>`;
+    return `<tr>
+      <td>${p.rank}</td>
+      <td>${esc(p.name)}</td>
+      <td class="text-primary">${p.score.toLocaleString()}</td>
+      <td class="prog-bar-cell">
+        <div>${p.current}/${p.total}</div>
+        <div class="mini-bar-bg"><div class="mini-bar" style="width:${pct}%"></div></div>
+      </td>
+      <td>${statusHtml}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="5" class="text-muted" style="padding:16px 12px;">尚無玩家</td></tr>';
 }
 
 // ── 排行榜渲染 ───────────────────────────────
 function renderLeaderboard(elId, data) {
-  const el = document.getElementById(elId);
   const medals = ['🥇','🥈','🥉'];
-  el.innerHTML = data.map((p, i) => `
+  document.getElementById(elId).innerHTML = data.map((p, i) => `
     <li>
-      <span class="rank-num ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${medals[i] || (i+1)}</span>
-      <span class="rank-name">${escHtml(p.name)}</span>
+      <span class="rank-num ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${medals[i]||(i+1)}</span>
+      <span class="rank-name">${esc(p.name)}</span>
       <span class="rank-score">${p.score.toLocaleString()}</span>
     </li>
   `).join('');
 }
 
-function escHtml(s) {
+function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
-// ── 通知 ─────────────────────────────────────
-function showNotice(msg) {
-  const area = document.getElementById('notice-area');
-  area.innerHTML = `<div class="flash-notice">${msg}</div>`;
-  setTimeout(() => { if (area.firstChild) area.innerHTML = ''; }, 4000);
-}
-
 // ── 操作函式 ─────────────────────────────────
-function nextQuestion() {
-  answeredIds.clear();
-  socket.emit('admin:next');
+function startGame() {
+  document.getElementById('start-btn').disabled = true;
+  document.getElementById('start-btn').textContent = '遊戲進行中…';
+  socket.emit('admin:start');
 }
 
-function revealAnswer() {
-  document.getElementById('reveal-btn').disabled = true;
-  socket.emit('admin:reveal');
+function forceEnd() {
+  if (confirm('確定要強制結束遊戲嗎？所有玩家會立即看到最終排名。')) {
+    socket.emit('admin:force-end');
+  }
 }
 
 function confirmReset() {
-  if (confirm('確定要重置遊戲嗎？所有分數與玩家資料將清除。')) {
+  if (confirm('確定要重置遊戲嗎？所有分數與進度將清除。')) {
     socket.emit('admin:reset');
   }
 }
 
 function exportCSV() {
-  const rows = [['名次', '姓名', '得分']];
+  const rows = [['名次','姓名','得分']];
   exportData.forEach(p => rows.push([p.rank, p.name, p.score]));
-  const csv = rows.map(r => r.join(',')).join('\n');
-  const bom = '\uFEFF'; // UTF-8 BOM for Excel
-  const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + rows.map(r => r.join(',')).join('\n')], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `AML_排位賽成績_${new Date().toISOString().slice(0,10)}.csv`;
@@ -394,92 +278,52 @@ function exportCSV() {
 
 // ── Socket 事件 ───────────────────────────────
 
-// 主持人連線時同步狀態
-socket.on('admin:sync', ({ phase, questionIndex, totalQ: tq, players: p, progress }) => {
-  totalQ = tq;
-  currentIndex = questionIndex;
-  updatePhaseDisplay(phase);
-  renderPlayers(p);
-  showArea(phase === 'ended' ? 'ended' : phase);
+socket.on('admin:sync', ({ phase, totalQ, players }) => {
+  document.getElementById('phase-text').textContent =
+    { lobby: '⏳ 等待大廳', playing: '🟡 遊戲進行中', ended: '🏁 遊戲結束' }[phase] || phase;
+  updateProgress(players);
+  showArea(phase === 'ended' ? 'ended' : phase === 'playing' ? 'playing' : 'lobby');
+  if (phase !== 'lobby') {
+    document.getElementById('start-btn').disabled = true;
+    document.getElementById('start-btn').textContent = '遊戲進行中…';
+    document.getElementById('forceend-btn').classList.toggle('hidden', phase === 'ended');
+  }
 });
 
-// 玩家加入/離開更新
-socket.on('lobby:update', renderPlayers);
+socket.on('lobby:update', (players) => updateProgress(players));
 
-// 題目開始
-socket.on('question:start', (q) => {
-  currentIndex = q.index;
-  updatePhaseDisplay('question');
-  answeredIds.clear();
-
-  document.getElementById('admin-q-category').textContent = q.category;
-  document.getElementById('admin-q-meta').textContent     = `第 ${q.index + 1} 題 / 共 ${q.total} 題`;
-  document.getElementById('admin-q-text').textContent     = q.text;
-  document.getElementById('reveal-btn').disabled = false;
-
-  // 更新「下一題」按鈕文字
-  const isLast = (q.index >= q.total - 1);
-  document.getElementById('next-btn').textContent = isLast ? '🏁 結束遊戲' : '▶ 下一題';
-  document.getElementById('start-btn').textContent = '▶ 下一題';
-
-  // 重設進度
-  document.getElementById('progress-text').textContent = `0 / ${players.length}`;
-  document.getElementById('progress-bar').style.width = '0%';
-
-  showArea('question');
+socket.on('admin:game-started', () => {
+  document.getElementById('phase-text').textContent = '🟡 遊戲進行中';
+  document.getElementById('forceend-btn').classList.remove('hidden');
+  showArea('playing');
 });
 
-// 作答進度
-socket.on('admin:progress', ({ answered, total }) => {
-  document.getElementById('progress-text').textContent = `${answered} / ${total}`;
-  document.getElementById('progress-bar').style.width = total ? `${(answered/total)*100}%` : '0%';
-});
+socket.on('admin:progress-update', (players) => updateProgress(players));
 
-// 全部作答完成
-socket.on('admin:all-answered', () => {
-  showNotice('✅ 所有玩家已作答完畢！可以揭曉答案了。');
-});
+socket.on('game:ended', (players) => {
+  document.getElementById('phase-text').textContent = '🏁 遊戲結束';
+  document.getElementById('forceend-btn').classList.add('hidden');
+  exportData = players;
 
-// 時間到
-socket.on('admin:time-up', () => {
-  showNotice('⏰ 時間到！可以揭曉答案了。');
-});
-
-// 揭曉答案
-socket.on('question:reveal', ({ correct, explanation, leaderboard, isLast }) => {
-  updatePhaseDisplay('reveal');
-  const letter = Array.isArray(correct) ? correct.join('、') : correct;
-  document.getElementById('admin-correct-letter').textContent = letter;
-  document.getElementById('admin-explanation').textContent   = explanation;
-  renderLeaderboard('admin-leaderboard', leaderboard);
-
-  document.getElementById('next-btn').textContent = isLast ? '🏁 結束遊戲' : '▶ 下一題';
-  showArea('reveal');
-});
-
-// 遊戲結束
-socket.on('game:ended', (leaderboard) => {
-  updatePhaseDisplay('ended');
-  exportData = leaderboard;
-  renderLeaderboard('final-admin-leaderboard', leaderboard);
+  renderLeaderboard('final-leaderboard', players);
 
   const tbody = document.getElementById('export-tbody');
-  tbody.innerHTML = leaderboard.map(p =>
-    `<tr><td>${p.rank}</td><td>${escHtml(p.name)}</td><td>${p.score.toLocaleString()}</td></tr>`
+  tbody.innerHTML = players.map(p =>
+    `<tr><td>${p.rank}</td><td>${esc(p.name)}</td><td>${p.score.toLocaleString()}</td></tr>`
   ).join('');
 
   showArea('ended');
 });
 
-// 遊戲重置
 socket.on('game:reset', () => {
-  updatePhaseDisplay('lobby');
-  answeredIds.clear();
+  document.getElementById('phase-text').textContent = '⏳ 等待大廳';
+  document.getElementById('start-btn').disabled = false;
+  document.getElementById('start-btn').textContent = '🚀 開始遊戲';
+  document.getElementById('forceend-btn').classList.add('hidden');
+  updateProgress([]);
   showArea('lobby');
-  document.getElementById('start-btn').textContent = '🚀 開始遊戲（第 1 題）';
 });
 
-// 主持人上線
 socket.emit('admin:join');
 </script>
 </body>

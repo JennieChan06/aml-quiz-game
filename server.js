@@ -15,37 +15,34 @@ app.use(express.static(path.join(__dirname, 'public')));
 //  遊戲狀態
 // ─────────────────────────────────────────────
 let state = {
-  phase: 'lobby',          // lobby | question | reveal | ended
-  questionIndex: -1,
-  players: {},             // { socketId: { name, score } }
-  answers: {},             // { socketId: { answer, elapsed, isCorrect, points } }
-  questionStartTime: null,
-  autoRevealTimer: null
+  phase: 'lobby',   // lobby | playing | ended
+  players: {}
+  // players[socketId]: { name, score, qIndex, qStartTime, answers[], finished }
 };
 
 function resetState() {
-  if (state.autoRevealTimer) clearTimeout(state.autoRevealTimer);
-  state = {
-    phase: 'lobby',
-    questionIndex: -1,
-    players: {},
-    answers: {},
-    questionStartTime: null,
-    autoRevealTimer: null
-  };
+  state = { phase: 'lobby', players: {} };
 }
 
 function leaderboard() {
   return Object.values(state.players)
     .sort((a, b) => b.score - a.score)
-    .map((p, i) => ({ rank: i + 1, name: p.name, score: p.score }));
+    .map((p, i) => ({
+      rank:     i + 1,
+      name:     p.name,
+      score:    p.score,
+      current:  p.qIndex + 1,          // 目前在第幾題（顯示用）
+      total:    questions.length,
+      finished: p.finished
+    }));
 }
 
-function answerProgress() {
-  return {
-    answered: Object.keys(state.answers).length,
-    total: Object.keys(state.players).length
-  };
+function checkAllFinished() {
+  const list = Object.values(state.players);
+  if (list.length > 0 && list.every(p => p.finished)) {
+    state.phase = 'ended';
+    io.emit('game:ended', leaderboard());
+  }
 }
 
 function getLocalIP() {
@@ -71,7 +68,11 @@ io.on('connection', (socket) => {
     if (Object.values(state.players).find(p => p.name === trimmed)) {
       return socket.emit('error', { msg: '此名稱已有人使用，請換一個' });
     }
-    state.players[socket.id] = { name: trimmed, score: 0 };
+    state.players[socket.id] = {
+      name: trimmed, score: 0,
+      qIndex: -1, qStartTime: null,
+      answers: [], finished: false
+    };
     socket.emit('player:joined', { name: trimmed, totalQ: questions.length });
     io.emit('lobby:update', leaderboard());
   });
@@ -80,119 +81,130 @@ io.on('connection', (socket) => {
   socket.on('admin:join', () => {
     socket.join('admins');
     socket.emit('admin:sync', {
-      phase: state.phase,
-      questionIndex: state.questionIndex,
+      phase:  state.phase,
       totalQ: questions.length,
-      players: leaderboard(),
-      progress: answerProgress()
+      players: leaderboard()
     });
   });
 
-  // ── 主持人：開始下一題 ────────────────────
-  socket.on('admin:next', () => {
-    if (state.questionIndex >= questions.length - 1) {
-      state.phase = 'ended';
-      io.emit('game:ended', leaderboard());
-      return;
-    }
-    if (state.autoRevealTimer) { clearTimeout(state.autoRevealTimer); state.autoRevealTimer = null; }
+  // ── 主持人：開始遊戲 ──────────────────────
+  socket.on('admin:start', () => {
+    if (state.phase !== 'lobby') return;
+    state.phase = 'playing';
 
-    state.questionIndex++;
-    state.phase = 'question';
-    state.answers = {};
-    state.questionStartTime = Date.now();
-
-    const q = questions[state.questionIndex];
-    const timeLimit = q.timeLimit || 60;
-
-    io.emit('question:start', {
-      index: state.questionIndex,
-      total: questions.length,
-      category: q.category,
-      text: q.text,
-      options: q.options,
-      isMultiple: q.isMultiple || false,
-      timeLimit
+    // 同時把第 0 題發給所有已加入的員工
+    Object.keys(state.players).forEach(sid => {
+      const p = state.players[sid];
+      p.qIndex = 0;
+      p.qStartTime = Date.now();
+      io.to(sid).emit('question:new', makeQPayload(0));
     });
 
-    // 倒數結束後自動通知主持人
-    state.autoRevealTimer = setTimeout(() => {
-      io.to('admins').emit('admin:time-up');
-    }, timeLimit * 1000);
+    io.to('admins').emit('admin:game-started');
+    io.to('admins').emit('admin:progress-update', leaderboard());
   });
 
   // ── 員工：送出答案 ────────────────────────
   socket.on('player:answer', ({ answer }) => {
-    if (state.phase !== 'question') return;
-    if (!state.players[socket.id]) return;
-    if (state.answers[socket.id]) return; // 已作答，不重複計分
+    const p = state.players[socket.id];
+    if (!p || state.phase !== 'playing') return;
+    if (p.answers[p.qIndex] !== undefined) return; // 避免重複計分
 
-    const elapsed = (Date.now() - state.questionStartTime) / 1000;
-    const q = questions[state.questionIndex];
-    const timeLimit = q.timeLimit || 60;
+    const q        = questions[p.qIndex];
+    const timedOut = (answer === null);
 
-    const isCorrect = q.isMultiple
-      ? [...answer].sort().join() === [...q.correct].sort().join()
-      : answer === q.correct;
-
-    // 計分：答對依速度給 500–1000 分，答錯 0 分
-    const points = isCorrect ? Math.round(Math.max(500, 1000 - (elapsed / timeLimit) * 500)) : 0;
-
-    state.answers[socket.id] = { answer, elapsed, isCorrect, points };
-    state.players[socket.id].score += points;
-
-    socket.emit('player:answer-ack', { isCorrect, points });
-
-    const progress = answerProgress();
-    io.to('admins').emit('admin:progress', progress);
-    if (progress.answered >= progress.total && progress.total > 0) {
-      io.to('admins').emit('admin:all-answered');
+    let isCorrect = false;
+    if (!timedOut) {
+      isCorrect = q.isMultiple
+        ? [...answer].sort().join() === [...q.correct].sort().join()
+        : answer === q.correct;
     }
+
+    const points = isCorrect ? 1000 : 0;
+    p.score += points;
+    p.answers[p.qIndex] = { answer, isCorrect, points };
+
+    const isLastQ = p.qIndex >= questions.length - 1;
+
+    // 立刻把答案 + 解析發給這位員工
+    socket.emit('question:reveal', {
+      correct:     q.correct,
+      explanation: q.explanation,
+      isCorrect,
+      timedOut,
+      points,
+      totalScore:  p.score,
+      isLastQ
+    });
+
+    io.to('admins').emit('admin:progress-update', leaderboard());
   });
 
-  // ── 主持人：揭曉答案 ──────────────────────
-  socket.on('admin:reveal', () => {
-    if (state.autoRevealTimer) { clearTimeout(state.autoRevealTimer); state.autoRevealTimer = null; }
-    state.phase = 'reveal';
-    const q = questions[state.questionIndex];
-    io.emit('question:reveal', {
-      correct: q.correct,
-      explanation: q.explanation,
-      leaderboard: leaderboard(),
-      isLast: state.questionIndex >= questions.length - 1
-    });
+  // ── 員工：請求下一題 ──────────────────────
+  socket.on('player:next', () => {
+    const p = state.players[socket.id];
+    if (!p || state.phase !== 'playing') return;
+
+    const nextIdx = p.qIndex + 1;
+
+    if (nextIdx >= questions.length) {
+      // 全部答完
+      p.finished = true;
+      socket.emit('game:ended', leaderboard());
+      io.to('admins').emit('admin:progress-update', leaderboard());
+      checkAllFinished();
+      return;
+    }
+
+    p.qIndex     = nextIdx;
+    p.qStartTime = Date.now();
+    socket.emit('question:new', makeQPayload(nextIdx));
+  });
+
+  // ── 主持人：強制結束 ──────────────────────
+  socket.on('admin:force-end', () => {
+    state.phase = 'ended';
+    io.emit('game:ended', leaderboard());
   });
 
   // ── 主持人：重置遊戲 ──────────────────────
   socket.on('admin:reset', () => {
     resetState();
     io.emit('game:reset');
-    socket.emit('admin:sync', {
-      phase: 'lobby', questionIndex: -1,
-      totalQ: questions.length, players: [], progress: { answered: 0, total: 0 }
-    });
+    socket.emit('admin:sync', { phase: 'lobby', totalQ: questions.length, players: [] });
   });
 
-  // ── 主持人：匯出成績 ──────────────────────
-  socket.on('admin:export', () => {
-    socket.emit('admin:export-data', leaderboard());
-  });
-
-  // ── 斷線處理 ─────────────────────────────
+  // ── 斷線 ──────────────────────────────────
   socket.on('disconnect', () => {
     if (state.players[socket.id]) {
       delete state.players[socket.id];
-      delete state.answers[socket.id];
       io.emit('lobby:update', leaderboard());
-      io.to('admins').emit('admin:progress', answerProgress());
+      io.to('admins').emit('admin:progress-update', leaderboard());
+      if (state.phase === 'playing') checkAllFinished();
     }
   });
 });
 
 // ─────────────────────────────────────────────
-//  啟動伺服器
+//  輔助：組題目 payload
 // ─────────────────────────────────────────────
-const PORT = process.env.PORT || 3000;
+function makeQPayload(idx) {
+  const q = questions[idx];
+  return {
+    index:      idx,
+    total:      questions.length,
+    category:   q.category,
+    text:       q.text,
+    options:    q.options,
+    isMultiple: q.isMultiple || false,
+    timeLimit:  q.timeLimit || 60
+  };
+}
+
+// ─────────────────────────────────────────────
+//  啟動
+// ─────────────────────────────────────────────
+const PORT     = process.env.PORT || 3000;
 const LOCAL_IP = getLocalIP();
 const IS_CLOUD = !!process.env.PORT;
 
@@ -201,14 +213,9 @@ server.listen(PORT, '0.0.0.0', () => {
   console.log('║    🎯 AML 洗錢防制排位賽系統已啟動       ║');
   console.log('╚══════════════════════════════════════════╝');
   if (IS_CLOUD) {
-    console.log('\n☁️  雲端模式運行中（Railway / Render）');
-    console.log('   請從雲端平台取得公開網址\n');
+    console.log('\n☁️  雲端模式運行中（Render）\n');
   } else {
-    console.log(`\n📱 員工加入網址：`);
-    console.log(`   http://${LOCAL_IP}:${PORT}\n`);
-    console.log(`🎮 主持人控制台：`);
-    console.log(`   http://${LOCAL_IP}:${PORT}/admin.html\n`);
-    console.log('⚠️  請確保所有設備連接同一個 WiFi');
-    console.log('   按 Ctrl+C 停止伺服器\n');
+    console.log(`\n📱 員工加入：http://${LOCAL_IP}:${PORT}`);
+    console.log(`🎮 主持人：  http://${LOCAL_IP}:${PORT}/admin.html\n`);
   }
 });
