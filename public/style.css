@@ -144,40 +144,111 @@ body {
   margin-bottom: 12px;
 }
 
-/* ── 倒數計時器 ────────────────────────────── */
-.timer-wrap {
+/* ── 像素風計時器 ──────────────────────────── */
+.pixel-timer-wrap {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
   margin-bottom: 16px;
 }
 
-.timer-bar-bg {
+/* 計時器軌道（天空） */
+.pixel-timer-track {
   flex: 1;
-  height: 10px;
-  background: var(--card2);
-  border-radius: 5px;
-  overflow: hidden;
-  margin-right: 12px;
-  border: 1px solid var(--border);
+  height: 34px;
+  position: relative;
+  /* 天空藍漸層 */
+  background:
+    radial-gradient(circle at 15% 45%, rgba(255,255,255,0.85) 10px, transparent 10px),
+    radial-gradient(circle at 28% 35%, rgba(255,255,255,0.7)   6px, transparent  6px),
+    radial-gradient(circle at 68% 40%, rgba(255,255,255,0.85) 13px, transparent 13px),
+    radial-gradient(circle at 82% 55%, rgba(255,255,255,0.7)   8px, transparent  8px),
+    #87ceeb;
+  border: 3px solid #1e293b;
+  border-radius: 6px;
+  image-rendering: pixelated;
+  overflow: visible;
+  /* 像素風格陰影 */
+  box-shadow: 3px 3px 0 #1e293b;
 }
 
-.timer-bar {
+/* 剩餘時間地板（磚塊紋路） */
+.pixel-timer-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
   height: 100%;
-  background: var(--primary);
-  border-radius: 5px;
-  transition: width 1s linear, background 0.5s;
+  /* 磚塊紋路 */
+  background:
+    /* 橫向磚縫 */
+    linear-gradient(rgba(0,0,0,0.18) 0px, transparent 1px, transparent 16px, rgba(0,0,0,0.18) 16px, rgba(0,0,0,0.18) 17px, transparent 17px) 0 0 / 100% 18px,
+    /* 縱向磚縫（錯排） */
+    repeating-linear-gradient(90deg, transparent 0, transparent 17px, rgba(0,0,0,0.18) 17px, rgba(0,0,0,0.18) 18px);
+  background-color: #f59e0b;
+  border-right: 3px solid #92400e;
+  border-radius: 3px 0 0 3px;
+  transition: width 1s linear;
+  z-index: 1;
 }
-.timer-bar.urgent { background: var(--danger); }
 
-.timer-num {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--primary);
-  min-width: 40px;
-  text-align: right;
+.pixel-timer-fill.urgent {
+  background-color: #ef4444;
+  border-right-color: #991b1b;
 }
-.timer-num.urgent { color: var(--danger); }
+
+/* 像素小雞 */
+.pixel-chick {
+  position: absolute;
+  right: -2px;
+  top: -30px;
+  font-size: 28px;
+  transform: translateX(50%);
+  z-index: 10;
+  line-height: 1;
+  image-rendering: pixelated;
+  /* 上下跳動（走路） */
+  animation: chick-walk 0.6s steps(2) infinite;
+  filter: drop-shadow(2px 2px 0 rgba(0,0,0,0.25));
+}
+
+@keyframes chick-walk {
+  0%   { transform: translateX(50%) translateY(0); }
+  50%  { transform: translateX(50%) translateY(-4px); }
+  100% { transform: translateX(50%) translateY(0); }
+}
+
+/* 時間快到時小雞跑快一點 */
+.pixel-chick.running {
+  animation: chick-run 0.25s steps(2) infinite;
+}
+
+@keyframes chick-run {
+  0%   { transform: translateX(50%) translateY(0) scaleX(1); }
+  50%  { transform: translateX(50%) translateY(-5px) scaleX(-1); }
+  100% { transform: translateX(50%) translateY(0) scaleX(1); }
+}
+
+/* 秒數顯示（像素字型） */
+.pixel-timer-num {
+  font-family: 'Press Start 2P', 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #92400e;
+  min-width: 44px;
+  text-align: right;
+  line-height: 1;
+  /* 像素風陰影 */
+  text-shadow: 2px 2px 0 rgba(0,0,0,0.15);
+}
+
+.pixel-timer-num.urgent {
+  color: var(--danger);
+  animation: blink-num 0.5s step-end infinite;
+}
+
+@keyframes blink-num {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
 
 /* ── 題目 ──────────────────────────────────── */
 .question-meta {

@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>AML 排位賽</title>
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -57,12 +58,16 @@
 ════════════════════════════════════════════ -->
 <div id="screen-question" class="page-center hidden">
   <div class="container">
-    <!-- 倒數計時 -->
-    <div class="timer-wrap">
-      <div class="timer-bar-bg">
-        <div id="timer-bar" class="timer-bar" style="width:100%"></div>
+    <!-- 像素風倒數計時器 -->
+    <div class="pixel-timer-wrap">
+      <div class="pixel-timer-track">
+        <!-- 剩餘時間地板（黃色磚塊） -->
+        <div id="timer-bar" class="pixel-timer-fill" style="width:100%">
+          <!-- 像素小雞在地板右邊界跑動 -->
+          <div class="pixel-chick" id="pixel-chick">🐤</div>
+        </div>
       </div>
-      <span id="timer-num" class="timer-num">60</span>
+      <span id="timer-num" class="pixel-timer-num">60</span>
     </div>
 
     <!-- 題目 -->
@@ -159,20 +164,22 @@ function showScreen(name) {
 function startTimer(seconds) {
   if (currentTimer) clearInterval(currentTimer);
   let remaining = seconds;
-  const bar = document.getElementById('timer-bar');
-  const num = document.getElementById('timer-num');
+  const bar   = document.getElementById('timer-bar');
+  const num   = document.getElementById('timer-num');
+  const chick = document.getElementById('pixel-chick');
 
   function tick() {
-    const pct = (remaining / seconds) * 100;
+    const pct    = (remaining / seconds) * 100;
+    const urgent = remaining <= 10;
+
     bar.style.width = pct + '%';
     num.textContent = remaining;
-    const urgent = remaining <= 10;
-    bar.classList.toggle('urgent', urgent);
     num.classList.toggle('urgent', urgent);
+    bar.classList.toggle('urgent', urgent);
+    if (chick) chick.classList.toggle('running', urgent);
 
     if (remaining <= 0) {
       clearInterval(currentTimer);
-      // 時間到，自動以未答送出（計為答錯）
       if (!myAnswered) {
         myAnswered = true;
         document.querySelectorAll('.option-btn').forEach(b => b.disabled = true);
