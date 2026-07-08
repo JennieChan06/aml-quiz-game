@@ -137,7 +137,10 @@ io.on('connection', (socket) => {
       isLastQ
     });
 
-    io.to('admins').emit('admin:progress-update', leaderboard());
+    const lb = leaderboard();
+    io.to('admins').emit('admin:progress-update', lb);
+    // 廣播最新排行給所有已在最終畫面等待的員工
+    io.emit('leaderboard:live', lb);
   });
 
   // ── 員工：請求下一題 ──────────────────────

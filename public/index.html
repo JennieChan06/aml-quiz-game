@@ -124,8 +124,11 @@
       <p>感謝參加 2026 年度 AML 教育訓練</p>
     </div>
     <div class="card">
-      <div class="section-title">🎖️ 最終排名</div>
-      <ul id="final-leaderboard" class="leaderboard" style="margin-top:8px;"></ul>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div class="section-title" style="margin-bottom:0;">🎖️ 最終排名</div>
+        <span id="final-status" class="badge badge-gold">⏳ 等待其他人完成…</span>
+      </div>
+      <ul id="final-leaderboard" class="leaderboard"></ul>
     </div>
     <p class="text-center text-muted mt-16" style="font-size:0.85rem;line-height:1.7;">
       完訓紀錄由主持人統一匯出。<br>謝謝大家的參與！
@@ -301,9 +304,21 @@ socket.on('question:reveal', ({ correct, explanation, isCorrect, timedOut, point
   showScreen('reveal');
 });
 
-// 遊戲結束
+// 即時排行更新（給已在最終畫面等待的員工）
+socket.on('leaderboard:live', (lb) => {
+  if (!document.getElementById('screen-final').classList.contains('hidden')) {
+    renderLeaderboard('final-leaderboard', lb);
+  }
+});
+
+// 遊戲結束（所有人完成）
 socket.on('game:ended', (lb) => {
   renderLeaderboard('final-leaderboard', lb);
+  const statusEl = document.getElementById('final-status');
+  if (statusEl) {
+    statusEl.textContent = '🏆 所有人已完成！';
+    statusEl.className = 'badge badge-green';
+  }
   showScreen('final');
 });
 
